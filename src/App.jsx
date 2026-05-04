@@ -100,6 +100,38 @@ function getGreetingTts(user) {
   )
 }
 
+function normalizeTtsText(text) {
+  if (!text) return ''
+
+  return String(text)
+    .replace(/😊|😀|😃|😄|😁|🙂|😉|👍|🙏|✨|💡|📌|🎓|📷|🎙|🎤|▶|■|◉/g, '')
+    .replace(/차의과학대학교/g, '차 의과학 대학교')
+    .replace(/AI의료데이터학/g, '에이아이 의료 데이터학')
+    .replace(/AI의료데이터/g, '에이아이 의료 데이터')
+    .replace(/SW융합/g, '소프트웨어 융합')
+    .replace(/\bAI\b/gi, '에이아이')
+    .replace(/\bGPT\b/gi, '지피티')
+    .replace(/\bGemma\b/gi, '젬마')
+    .replace(/\bHeyGen\b/gi, '헤이젠')
+    .replace(/\bSyncTalk\b/gi, '싱크톡')
+    .replace(/\bLiveKit\b/gi, '라이브킷')
+    .replace(/\bChrome\b/gi, '크롬')
+    .replace(/\bVercel\b/gi, '버셀')
+    .replace(/\bRAG\b/gi, '랙')
+    .replace(/\bAPI\b/gi, '에이피아이')
+    .replace(/\bURL\b/gi, '유알엘')
+    .replace(/\bSTT\b/gi, '에스티티')
+    .replace(/\bTTS\b/gi, '티티에스')
+    .replace(/\bFTF\b/gi, '에프티에프')
+    .replace(/\bSTS\b/gi, '에스티에스')
+    .replace(/\bTTT\b/gi, '티티티')
+    .replace(/CHA/g, '차')
+    .replace(/IT/g, '아이티')
+    .replace(/OK/g, '오케이')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 async function callProxy(endpoint, payload) {
   const res = await fetch('/api/heygen-proxy', {
     method: 'POST',
@@ -125,7 +157,10 @@ export default function App() {
   const roomRef           = useRef(null)
   const sessionRef        = useRef(null)
   const videoRef          = useRef(null)
+  const audioRef          = useRef(null)
   const userVideoRef      = useRef(null)
+  const avatarVideoTrackRef = useRef(null)
+  const avatarAudioTrackRef = useRef(null)
   const cameraStreamRef   = useRef(null)
   const historyRef        = useRef([])
   const sessionIdRef      = useRef(null)   // 학교 DB용 세션 ID (아바타 시작 시 새로)
@@ -266,7 +301,7 @@ export default function App() {
       })
       const data = await res.json()
       const reply    = data.reply    || '죄송해요, 답변을 생성하지 못했어요.'
-      const ttsReply = data.ttsReply || reply
+      const ttsReply = normalizeTtsText(data.ttsReply || reply)
 
       setMessages(prev => {
         const next = [...prev]
@@ -550,6 +585,8 @@ export default function App() {
     // 상태 리셋
     sessionRef.current     = null
     sessionIdRef.current   = null
+    avatarVideoTrackRef.current = null
+    avatarAudioTrackRef.current = null
     historyRef.current     = []
     setVideoReady(false)
     setStatus('idle')
@@ -584,6 +621,18 @@ export default function App() {
   }, [clearListeningRestart, stopUserCamera, user])
 
   // ─── 아바타 시작 ───────────────────────────────────
+  const attachAvatarTracks = useCallback(() => {
+    if (avatarVideoTrackRef.current && videoRef.current) {
+      try { avatarVideoTrackRef.current.attach(videoRef.current) } catch (e) { console.warn('video attach error:', e) }
+    }
+    if (avatarAudioTrackRef.current && audioRef.current) {
+      try {
+        avatarAudioTrackRef.current.attach(audioRef.current)
+        audioRef.current.play?.().catch(() => {})
+      } catch (e) { console.warn('audio attach error:', e) }
+    }
+  }, [])
+
   const startAvatar = useCallback(async () => {
     setStatus('connecting')
     sessionIdRef.current = newSessionId()  // 새 세션 ID
@@ -620,9 +669,19 @@ export default function App() {
       })
 
       room.on(window.LivekitClient.RoomEvent.TrackSubscribed, (track) => {
-        if ((track.kind === 'video' || track.kind === 'audio') && videoRef.current) {
-          track.attach(videoRef.current)
-          if (track.kind === 'video') setVideoReady(true)
+        if (track.kind === 'video') {
+          avatarVideoTrackRef.current = track
+          if (videoRef.current) {
+            track.attach(videoRef.current)
+            setVideoReady(true)
+          }
+        }
+        if (track.kind === 'audio') {
+          avatarAudioTrackRef.current = track
+          if (audioRef.current) {
+            track.attach(audioRef.current)
+            audioRef.current.play?.().catch(() => {})
+          }
         }
       })
 
@@ -633,7 +692,7 @@ export default function App() {
 
       // 인사말 — 채팅 표시 + 아바타 발화
       const greetingText = getGreetingText(user)
-      const greetingTts = getGreetingTts(user)
+      const greetingTts = normalizeTtsText(getGreetingTts(user))
 
       setMessages([{ role: 'assistant', text: greetingText }])
       saveChat(sessionIdRef.current, 'assistant', greetingText)  // 인사말도 저장
@@ -666,6 +725,8 @@ export default function App() {
         roomRef.current = null
       }
       sessionRef.current = null
+      avatarVideoTrackRef.current = null
+      avatarAudioTrackRef.current = null
       setVideoReady(false)
       setStatus('idle')
     }
@@ -693,6 +754,11 @@ export default function App() {
     conversationModeRef.current = nextMode
     setConversationMode(nextMode)
 
+    if (hasHeyGenSession) {
+      setTimeout(attachAvatarTracks, 0)
+      setTimeout(attachAvatarTracks, 120)
+    }
+
     if (nextMode === 'ftf') {
       if (hasHeyGenSession) startUserCamera()
     } else {
@@ -712,7 +778,7 @@ export default function App() {
       setAutoListen(true)
       scheduleStartListening(500)
     }
-  }, [initRecognition, scheduleStartListening, startUserCamera, status, stopListening, stopUserCamera])
+  }, [attachAvatarTracks, initRecognition, scheduleStartListening, startUserCamera, status, stopListening, stopUserCamera])
 
   const isChatConnected = status !== 'idle' && status !== 'connecting'
 
@@ -723,6 +789,7 @@ export default function App() {
         mode={conversationMode}
         onModeChange={changeConversationMode}
         videoRef={videoRef}
+        audioRef={audioRef}
         userVideoRef={userVideoRef}
         videoReady={videoReady}
         cameraActive={Boolean(cameraStream)}

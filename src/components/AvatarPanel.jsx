@@ -18,6 +18,7 @@ export default function AvatarPanel({
   mode,
   onModeChange,
   videoRef,
+  audioRef,
   userVideoRef,
   videoReady,
   cameraActive,
@@ -43,6 +44,13 @@ export default function AvatarPanel({
   return (
     <div className={styles.panel}>
       <div className={stageClass}>
+        <audio
+          ref={audioRef}
+          autoPlay
+          playsInline
+          className={styles.hiddenMedia}
+        />
+
         {!showAvatarVideo && (
           <video
             ref={videoRef}
