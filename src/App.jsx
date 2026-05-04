@@ -279,7 +279,7 @@ export default function App() {
       if (sessionIdRef.current) saveChat(sessionIdRef.current, 'assistant', reply)
 
       // HeyGen 발화
-      if (sessionRef.current) {
+      if (sessionRef.current && conversationModeRef.current !== 'ttt') {
         isSpeakingRef.current = true
         setStatus('speaking')
         await callProxy('streaming.task', {
@@ -681,17 +681,38 @@ export default function App() {
 
   const changeConversationMode = useCallback(async (nextMode) => {
     if (nextMode === conversationModeRef.current) return
-    const hasActiveConversation = status !== 'idle' || messages.length > 0
-    if (hasActiveConversation) {
-      const ok = window.confirm('모드를 바꾸면 현재 대화가 초기화돼요. 바꿀까요?')
-      if (!ok) return
-      await stopAvatar()
+
+    const hasHeyGenSession = Boolean(sessionRef.current)
+    const isTextOnlySession = status !== 'idle' && !hasHeyGenSession
+
+    if (isTextOnlySession && nextMode !== 'ttt') {
+      alert('텍스트 전용 대화에서 화상/음성으로 바꾸려면 현재 대화를 종료한 뒤 다시 시작해주세요.')
+      return
     }
 
     conversationModeRef.current = nextMode
     setConversationMode(nextMode)
-    if (nextMode !== 'ftf') stopUserCamera()
-  }, [messages.length, status, stopAvatar, stopUserCamera])
+
+    if (nextMode === 'ftf') {
+      if (hasHeyGenSession) startUserCamera()
+    } else {
+      stopUserCamera()
+    }
+
+    if (nextMode === 'ttt') {
+      autoListenRef.current = false
+      setAutoListen(false)
+      stopListening()
+      return
+    }
+
+    if (hasHeyGenSession) {
+      if (!recognitionRef.current) initRecognition()
+      autoListenRef.current = true
+      setAutoListen(true)
+      scheduleStartListening(500)
+    }
+  }, [initRecognition, scheduleStartListening, startUserCamera, status, stopListening, stopUserCamera])
 
   const isChatConnected = status !== 'idle' && status !== 'connecting'
 

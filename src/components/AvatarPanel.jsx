@@ -7,12 +7,6 @@ const STATUS_MAP = {
   speaking:   { label: '말하는 중', dot: 'blue'  },
 }
 
-const MODE_OPTIONS = [
-  { value: 'ftf', label: 'FTF', sub: '화상' },
-  { value: 'sts', label: 'STS', sub: '음성' },
-  { value: 'ttt', label: 'TTT', sub: '텍스트' },
-]
-
 const VISUALIZER_BARS = Array.from({ length: 120 }, (_, index) => {
   const wave = Math.sin(index * 0.39) + Math.cos(index * 0.21) + Math.sin(index * 0.11)
   const height = 8 + Math.round(Math.abs(wave) * 13) + (index % 15 === 0 ? 12 : 0)
@@ -37,7 +31,9 @@ export default function AvatarPanel({
   const showAvatarVideo = mode === 'ftf'
   const showVoiceOnly = mode === 'sts'
   const showTextOnly = mode === 'ttt'
-  const startLabel = mode === 'ttt' ? '텍스트 시작' : mode === 'sts' ? '음성 시작' : '화상 시작'
+  const avatarEnabled = mode === 'ftf'
+  const micEnabled = mode !== 'ttt'
+  const startLabel = '대화 시작'
   const stageClass = [
     styles.mediaStage,
     mode === 'ftf' ? styles.sideBySide : '',
@@ -137,15 +133,32 @@ export default function AvatarPanel({
         )}
       </div>
 
-      <div className={styles.modeSwitch} role="group" aria-label="대화 모드 선택">
-        {MODE_OPTIONS.map(option => (
+      <div className={styles.modeSwitch} role="group" aria-label="상담 기능 설정">
+        {[
+          {
+            key: 'avatar',
+            label: '아바타',
+            sub: avatarEnabled ? '켜짐' : '꺼짐',
+            pressed: avatarEnabled,
+            disabled: status === 'connecting',
+            onClick: () => onModeChange?.(avatarEnabled ? 'sts' : 'ftf')
+          },
+          {
+            key: 'mic',
+            label: '마이크',
+            sub: micEnabled ? '켜짐' : '꺼짐',
+            pressed: micEnabled,
+            disabled: status === 'connecting',
+            onClick: () => onModeChange?.(micEnabled ? 'ttt' : 'ftf')
+          }
+        ].map(option => (
           <button
-            key={option.value}
+            key={option.key}
             type="button"
-            className={`${styles.modeBtn} ${mode === option.value ? styles.modeBtnActive : ''}`}
-            onClick={() => onModeChange?.(option.value)}
-            disabled={status === 'connecting'}
-            aria-pressed={mode === option.value}
+            className={`${styles.modeBtn} ${option.pressed ? styles.modeBtnActive : ''}`}
+            onClick={option.onClick}
+            disabled={option.disabled}
+            aria-pressed={option.pressed}
             title={`${option.label} ${option.sub}`}
           >
             <span className={styles.modeLabel}>{option.label}</span>
