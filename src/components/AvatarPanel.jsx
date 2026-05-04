@@ -13,9 +13,9 @@ const MODE_OPTIONS = [
   { value: 'ttt', label: 'TTT', sub: '텍스트' },
 ]
 
-const VISUALIZER_BARS = Array.from({ length: 72 }, (_, index) => {
-  const wave = Math.sin(index * 0.52) + Math.cos(index * 0.17)
-  const height = 12 + Math.round(Math.abs(wave) * 18) + (index % 9 === 0 ? 16 : 0)
+const VISUALIZER_BARS = Array.from({ length: 120 }, (_, index) => {
+  const wave = Math.sin(index * 0.39) + Math.cos(index * 0.21) + Math.sin(index * 0.11)
+  const height = 8 + Math.round(Math.abs(wave) * 13) + (index % 15 === 0 ? 12 : 0)
   return { index, height }
 })
 
@@ -92,7 +92,6 @@ export default function AvatarPanel({
         {showVoiceOnly && (
           <div className={`${styles.voicePanel} ${status === 'speaking' ? styles.voiceSpeaking : ''}`}>
             <div className={styles.circularVisualizer} aria-hidden="true">
-              <div className={styles.visualizerRing} />
               {VISUALIZER_BARS.map(({ index, height }) => (
                 <span
                   key={index}
