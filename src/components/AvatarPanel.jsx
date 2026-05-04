@@ -26,18 +26,13 @@ export default function AvatarPanel({
   onInterrupt
 }) {
   const mappedStatus = STATUS_MAP[status] || STATUS_MAP.idle
-  const label = mode === 'ttt' && status === 'connected' ? '텍스트 대화' : mappedStatus.label
+  const label = mode === 'ttt' && status === 'connected' ? '연결됨' : mappedStatus.label
   const dot = mappedStatus.dot
   const showAvatarVideo = mode === 'ftf'
   const showVoiceOnly = mode === 'sts'
   const showTextOnly = mode === 'ttt'
   const cameraEnabled = mode === 'ftf'
   const micEnabled = mode !== 'ttt'
-  const modeSummary = cameraEnabled && micEnabled
-    ? '화상 상담 준비됨'
-    : micEnabled
-      ? '음성 상담 준비됨'
-      : '텍스트 상담 준비됨'
   const stageClass = [
     styles.mediaStage,
     mode === 'ftf' ? styles.sideBySide : '',
@@ -104,16 +99,12 @@ export default function AvatarPanel({
                 />
               ))}
             </div>
-            <p className={styles.placeholderText}>음성 대화</p>
-            <p className={styles.placeholderSub}>영상 없이 음성으로 상담</p>
           </div>
         )}
 
         {showTextOnly && (
           <div className={styles.textPanel}>
-            <div className={styles.textBadge}>TTT</div>
-            <p className={styles.placeholderText}>텍스트 대화</p>
-            <p className={styles.placeholderSub}>마이크와 아바타 없이 Gemma4 상담</p>
+            <div className={styles.textBadge}>AI</div>
           </div>
         )}
 
@@ -138,7 +129,6 @@ export default function AvatarPanel({
       </div>
 
       <div className={styles.optionPanel} aria-label="상담 방식 설정">
-        <div className={styles.optionSummary}>{modeSummary}</div>
         <div className={styles.optionRow}>
           <button
             type="button"

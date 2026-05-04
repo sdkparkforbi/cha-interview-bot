@@ -144,7 +144,7 @@ export default function ChatPanel({
       {/* 하단 힌트 */}
       <div className={styles.hint}>
         {mode === 'ttt'
-          ? 'Enter로 전송 · Shift+Enter 줄바꿈 · 텍스트 대화'
+          ? 'Enter로 전송 · Shift+Enter 줄바꿈'
           : 'Enter로 전송 · Shift+Enter 줄바꿈 · ◉ 누르면 듣기 시작'}
       </div>
     </div>

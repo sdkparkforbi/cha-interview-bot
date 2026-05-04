@@ -347,8 +347,8 @@
 }
 
 .optionPanel {
-  width: min(420px, 100%);
-  padding: 10px;
+  width: min(240px, 100%);
+  padding: 6px;
   border-radius: 16px;
   border: 1px solid var(--border);
   background: rgba(255,255,255,0.035);
@@ -356,18 +356,10 @@
   z-index: 2;
 }
 
-.optionSummary {
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 9px;
-}
-
 .optionRow {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .optionToggle {
@@ -713,18 +705,13 @@
   }
 
   .optionPanel {
-    width: min(260px, 100%);
-    padding: 6px;
+    width: min(180px, 100%);
+    padding: 5px;
     border-radius: 12px;
   }
 
-  .optionSummary {
-    font-size: 11px;
-    margin-bottom: 5px;
-  }
-
   .optionRow {
-    gap: 5px;
+    gap: 4px;
   }
 
   .optionToggle {
@@ -782,7 +769,7 @@
   }
 
   .optionPanel {
-    width: min(360px, 100%);
+    width: min(240px, 100%);
   }
 }
 
