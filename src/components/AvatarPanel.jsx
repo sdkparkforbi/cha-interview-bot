@@ -13,6 +13,12 @@ const MODE_OPTIONS = [
   { value: 'ttt', label: 'TTT', sub: '텍스트' },
 ]
 
+const VISUALIZER_BARS = Array.from({ length: 72 }, (_, index) => {
+  const wave = Math.sin(index * 0.52) + Math.cos(index * 0.17)
+  const height = 12 + Math.round(Math.abs(wave) * 18) + (index % 9 === 0 ? 16 : 0)
+  return { index, height }
+})
+
 export default function AvatarPanel({
   status,
   mode,
@@ -85,13 +91,19 @@ export default function AvatarPanel({
 
         {showVoiceOnly && (
           <div className={`${styles.voicePanel} ${status === 'speaking' ? styles.voiceSpeaking : ''}`}>
-            <div className={styles.voiceOrb} aria-hidden="true">
-              <span className={styles.voiceRing} />
-              <span className={styles.voiceRing} />
-              <span className={styles.voiceCore} />
-            </div>
-            <div className={styles.waveBars} aria-hidden="true">
-              <span /><span /><span /><span /><span />
+            <div className={styles.circularVisualizer} aria-hidden="true">
+              <div className={styles.visualizerRing} />
+              {VISUALIZER_BARS.map(({ index, height }) => (
+                <span
+                  key={index}
+                  className={styles.visualizerBar}
+                  style={{
+                    '--angle': `${index * (360 / VISUALIZER_BARS.length)}deg`,
+                    '--bar-height': `${height}px`,
+                    '--delay': `${index * -0.035}s`
+                  }}
+                />
+              ))}
             </div>
             <p className={styles.placeholderText}>음성 대화</p>
             <p className={styles.placeholderSub}>영상 없이 교수님 목소리로 상담</p>
