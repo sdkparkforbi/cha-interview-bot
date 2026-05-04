@@ -623,7 +623,10 @@ export default function App() {
   // ─── 아바타 시작 ───────────────────────────────────
   const attachAvatarTracks = useCallback(() => {
     if (avatarVideoTrackRef.current && videoRef.current) {
-      try { avatarVideoTrackRef.current.attach(videoRef.current) } catch (e) { console.warn('video attach error:', e) }
+      try {
+        avatarVideoTrackRef.current.attach(videoRef.current)
+        setVideoReady(true)
+      } catch (e) { console.warn('video attach error:', e) }
     }
     if (avatarAudioTrackRef.current && audioRef.current) {
       try {
@@ -632,6 +635,23 @@ export default function App() {
       } catch (e) { console.warn('audio attach error:', e) }
     }
   }, [])
+
+  useEffect(() => {
+    if (!sessionRef.current || conversationMode === 'ttt') return
+
+    let rafId = 0
+    const timerIds = []
+    const reattach = () => attachAvatarTracks()
+
+    rafId = window.requestAnimationFrame(reattach)
+    timerIds.push(window.setTimeout(reattach, 120))
+    timerIds.push(window.setTimeout(reattach, 360))
+
+    return () => {
+      window.cancelAnimationFrame(rafId)
+      timerIds.forEach(window.clearTimeout)
+    }
+  }, [attachAvatarTracks, conversationMode])
 
   const startAvatar = useCallback(async () => {
     setStatus('connecting')
@@ -754,11 +774,6 @@ export default function App() {
     conversationModeRef.current = nextMode
     setConversationMode(nextMode)
 
-    if (hasHeyGenSession) {
-      setTimeout(attachAvatarTracks, 0)
-      setTimeout(attachAvatarTracks, 120)
-    }
-
     if (nextMode === 'ftf') {
       if (hasHeyGenSession) startUserCamera()
     } else {
@@ -778,7 +793,7 @@ export default function App() {
       setAutoListen(true)
       scheduleStartListening(500)
     }
-  }, [attachAvatarTracks, initRecognition, scheduleStartListening, startUserCamera, status, stopListening, stopUserCamera])
+  }, [initRecognition, scheduleStartListening, startUserCamera, status, stopListening, stopUserCamera])
 
   const isChatConnected = status !== 'idle' && status !== 'connecting'
 
