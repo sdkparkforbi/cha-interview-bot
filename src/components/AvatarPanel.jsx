@@ -69,18 +69,18 @@ export default function AvatarPanel({
             {!videoReady && (
               <div className={styles.placeholder}>
                 <div className={styles.avatarIcon}>
-                  <span>교수</span>
+                  <span>AI</span>
                 </div>
-                <p className={styles.placeholderText}>박대근 교수</p>
-                <p className={styles.placeholderSub}>차의과학대학교 신입생 담임교수</p>
+                <p className={styles.placeholderText}>AI 면담 어시스턴트</p>
+                <p className={styles.placeholderSub}>차의과학대학교 신입생 전공상담</p>
               </div>
             )}
 
             {videoReady && (
               <div className={styles.nameplate}>
                 <div className={styles.nameplateInner}>
-                  <span className={styles.nameplateName}>박대근 교수</span>
-                  <span className={styles.nameplateSub}>차의과학대학교 신입생 담임교수</span>
+                  <span className={styles.nameplateName}>AI 면담 어시스턴트</span>
+                  <span className={styles.nameplateSub}>차의과학대학교 신입생 전공상담</span>
                 </div>
               </div>
             )}
@@ -105,7 +105,7 @@ export default function AvatarPanel({
               ))}
             </div>
             <p className={styles.placeholderText}>음성 대화</p>
-            <p className={styles.placeholderSub}>영상 없이 교수님 목소리로 상담</p>
+            <p className={styles.placeholderSub}>영상 없이 음성으로 상담</p>
           </div>
         )}
 
@@ -147,7 +147,8 @@ export default function AvatarPanel({
             disabled={status === 'connecting'}
             aria-pressed={cameraEnabled}
           >
-            <span className={styles.toggleLabel}>카메라</span>
+            <span className={styles.toggleIcon} aria-hidden="true">📷</span>
+            <span className={styles.srOnly}>카메라</span>
             <span className={styles.toggleTrack}><span /></span>
           </button>
           <button
@@ -157,7 +158,8 @@ export default function AvatarPanel({
             disabled={status === 'connecting'}
             aria-pressed={micEnabled}
           >
-            <span className={styles.toggleLabel}>마이크</span>
+            <span className={styles.toggleIcon} aria-hidden="true">🎙</span>
+            <span className={styles.srOnly}>마이크</span>
             <span className={styles.toggleTrack}><span /></span>
           </button>
         </div>

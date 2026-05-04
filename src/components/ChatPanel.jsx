@@ -14,7 +14,7 @@ function Message({ msg }) {
   return (
     <div className={`${styles.msgRow} ${isUser ? styles.userRow : styles.assistantRow}`}>
       {!isUser && (
-        <div className={styles.avatar}>박</div>
+        <div className={styles.avatar}>AI</div>
       )}
       <div className={`${styles.bubble} ${isUser ? styles.userBubble : styles.assistantBubble}`}>
         {msg.text === null ? <TypingDots /> : msg.text}
@@ -111,10 +111,10 @@ export default function ChatPanel({
             className={styles.sendBtn}
             onClick={onToggleMic}
             disabled={!micEnabled}
-            title={isListening ? '마이크 끄기' : '마이크 켜기'}
+            title={isListening ? '듣기 중지' : '음성 듣기 시작'}
             style={isListening ? { background: '#dc2626', color: '#fff' } : undefined}
           >
-            {isListening ? '■' : '🎤'}
+            {isListening ? '■' : '◉'}
           </button>
         )}
         <textarea
@@ -145,7 +145,7 @@ export default function ChatPanel({
       <div className={styles.hint}>
         {mode === 'ttt'
           ? 'Enter로 전송 · Shift+Enter 줄바꿈 · 텍스트 대화'
-          : 'Enter로 전송 · Shift+Enter 줄바꿈 · 🎤 누르면 음성 대화'}
+          : 'Enter로 전송 · Shift+Enter 줄바꿈 · ◉ 누르면 듣기 시작'}
       </div>
     </div>
   )

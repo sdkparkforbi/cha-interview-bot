@@ -403,10 +403,21 @@
   color: #f5dbc3;
 }
 
-.toggleLabel {
-  font-size: 12px;
-  font-weight: 700;
+.toggleIcon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+  border: 0;
 }
 
 .toggleTrack {
@@ -723,8 +734,8 @@
     gap: 6px;
   }
 
-  .toggleLabel {
-    font-size: 11px;
+  .toggleIcon {
+    font-size: 15px;
   }
 
   .toggleTrack {

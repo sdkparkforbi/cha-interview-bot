@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>박대근 교수 면담봇 | 차의과학대 신입생 전공상담</title>
+<title>차의과학대 신입생 전공상담 봇</title>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -113,7 +113,7 @@
 
 <header>
   <div>
-    <h1>박대근 교수 면담봇</h1>
+    <h1>신입생 전공상담 봇</h1>
     <span>차의과학대학교 신입생 전공 소개 · 진로상담</span>
   </div>
 </header>
@@ -135,7 +135,7 @@
     <div class="chat-header">💬 대화 기록</div>
     <div class="chat-messages" id="chat-messages">
       <div class="msg assistant">
-        <div class="label">박대근 교수</div>
+        <div class="label">AI 면담 어시스턴트</div>
         안녕하세요! 차의과학대학교 신입생 전공상담 봇입니다. 전공 선택이나 진로에 대해 궁금한 점을 편하게 물어보세요 😊
       </div>
     </div>
@@ -167,7 +167,7 @@ function addMessage(role, text) {
   const wrap = document.getElementById('chat-messages');
   const div = document.createElement('div');
   div.className = 'msg ' + role;
-  div.innerHTML = `<div class="label">${role === 'user' ? '나' : '박대근 교수'}</div>${text}`;
+  div.innerHTML = `<div class="label">${role === 'user' ? '나' : 'AI 면담 어시스턴트'}</div>${text}`;
   wrap.appendChild(div);
   wrap.scrollTop = wrap.scrollHeight;
 }
