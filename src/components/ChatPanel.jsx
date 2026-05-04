@@ -23,10 +23,24 @@ function Message({ msg }) {
   )
 }
 
-export default function ChatPanel({ messages, isProcessing, onSend, connected, isListening, onToggleMic, micEnabled, user, onLoginClick, onLogout }) {
+export default function ChatPanel({
+  messages,
+  isProcessing,
+  onSend,
+  connected,
+  isListening,
+  onToggleMic,
+  micEnabled,
+  micAvailable = true,
+  mode,
+  user,
+  onLoginClick,
+  onLogout
+}) {
   const [input, setInput]       = useState('')
   const bottomRef               = useRef(null)
   const textareaRef             = useRef(null)
+  const displayName             = user?.name || user?.nickname || '사용자'
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -64,17 +78,19 @@ export default function ChatPanel({ messages, isProcessing, onSend, connected, i
           <span className={styles.headerTitle}>면담 대화</span>
         </div>
         {user ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className={styles.headerSub}>{user.name}님</span>
+          <div className={styles.userArea}>
+            <span className={`${styles.headerSub} ${styles.userGreeting}`}>
+              {displayName}님
+            </span>
             <button
               onClick={onLogout}
-              style={{ background: 'transparent', border: '1px solid #2a2a32', color: '#888', borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer' }}
+              className={styles.logoutBtn}
             >로그아웃</button>
           </div>
         ) : (
           <button
             onClick={onLoginClick}
-            style={{ background: '#2a2a32', border: 'none', color: '#e6e6e6', borderRadius: 6, padding: '6px 14px', fontSize: 13, cursor: 'pointer' }}
+            className={styles.loginBtn}
           >로그인</button>
         )}
       </div>
@@ -89,16 +105,18 @@ export default function ChatPanel({ messages, isProcessing, onSend, connected, i
 
       {/* 입력창 */}
       <div className={styles.inputArea}>
-        <button
-          type="button"
-          className={styles.sendBtn}
-          onClick={onToggleMic}
-          disabled={!micEnabled}
-          title={isListening ? '마이크 끄기' : '마이크 켜기'}
-          style={isListening ? { background: '#dc2626', color: '#fff' } : undefined}
-        >
-          {isListening ? '■' : '🎤'}
-        </button>
+        {micAvailable && (
+          <button
+            type="button"
+            className={styles.sendBtn}
+            onClick={onToggleMic}
+            disabled={!micEnabled}
+            title={isListening ? '마이크 끄기' : '마이크 켜기'}
+            style={isListening ? { background: '#dc2626', color: '#fff' } : undefined}
+          >
+            {isListening ? '■' : '🎤'}
+          </button>
+        )}
         <textarea
           ref={textareaRef}
           className={styles.textarea}
@@ -106,7 +124,8 @@ export default function ChatPanel({ messages, isProcessing, onSend, connected, i
           onChange={handleInput}
           onKeyDown={handleKey}
           placeholder={
-            !connected ? '먼저 [아바타 시작] 버튼을 눌러주세요'
+            !connected ? (mode === 'ttt' ? '먼저 [텍스트 시작] 버튼을 눌러주세요' : '먼저 시작 버튼을 눌러주세요')
+            : mode === 'ttt' ? '텍스트로 질문을 입력하세요…'
             : isListening ? '듣고 있어요…'
             : '궁금한 점을 입력하세요…'
           }
@@ -124,7 +143,9 @@ export default function ChatPanel({ messages, isProcessing, onSend, connected, i
 
       {/* 하단 힌트 */}
       <div className={styles.hint}>
-        Enter로 전송 · Shift+Enter 줄바꿈 · 🎤 누르면 음성 대화
+        {mode === 'ttt'
+          ? 'Enter로 전송 · Shift+Enter 줄바꿈 · 텍스트 대화'
+          : 'Enter로 전송 · Shift+Enter 줄바꿈 · 🎤 누르면 음성 대화'}
       </div>
     </div>
   )

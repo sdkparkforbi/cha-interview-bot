@@ -7,45 +7,114 @@ const STATUS_MAP = {
   speaking:   { label: '말하는 중', dot: 'blue'  },
 }
 
-export default function AvatarPanel({ status, videoRef, videoReady, onStart, onStop, onInterrupt }) {
-  const { label, dot } = STATUS_MAP[status] || STATUS_MAP.idle
+const MODE_OPTIONS = [
+  { value: 'ftf', label: 'FTF', sub: '화상' },
+  { value: 'sts', label: 'STS', sub: '음성' },
+  { value: 'ttt', label: 'TTT', sub: '텍스트' },
+]
+
+export default function AvatarPanel({
+  status,
+  mode,
+  onModeChange,
+  videoRef,
+  userVideoRef,
+  videoReady,
+  cameraActive,
+  onStart,
+  onStop,
+  onInterrupt
+}) {
+  const mappedStatus = STATUS_MAP[status] || STATUS_MAP.idle
+  const label = mode === 'ttt' && status === 'connected' ? '텍스트 대화' : mappedStatus.label
+  const dot = mappedStatus.dot
+  const showAvatarVideo = mode === 'ftf'
+  const showVoiceOnly = mode === 'sts'
+  const showTextOnly = mode === 'ttt'
+  const startLabel = mode === 'ttt' ? '텍스트 시작' : mode === 'sts' ? '음성 시작' : '화상 시작'
 
   return (
     <div className={styles.panel}>
-      {/* 배경 그라디언트 오브 */}
-      <div className={styles.orb} />
-
-      {/* 비디오 */}
-      <div className={styles.videoWrap}>
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className={styles.video}
-          style={{ opacity: videoReady ? 1 : 0 }}
-        />
-        {!videoReady && (
-          <div className={styles.placeholder}>
-            <div className={styles.avatarIcon}>
-              <span>👨‍🏫</span>
+      <div className={`${styles.mediaStage} ${mode === 'ftf' ? styles.sideBySide : ''}`}>
+        <div className={styles.videoWrap}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className={styles.video}
+            style={{ opacity: showAvatarVideo && videoReady ? 1 : 0 }}
+          />
+          {showAvatarVideo && !videoReady && (
+            <div className={styles.placeholder}>
+              <div className={styles.avatarIcon}>
+                <span>교수</span>
+              </div>
+              <p className={styles.placeholderText}>박대근 교수</p>
+              <p className={styles.placeholderSub}>차의과학대학교 신입생 담임교수</p>
             </div>
-            <p className={styles.placeholderText}>박대근 교수</p>
-            <p className={styles.placeholderSub}>차의과학대학교 경영학전공</p>
+          )}
+          {showVoiceOnly && (
+            <div className={styles.modePlaceholder}>
+              <div className={styles.modeIcon}>STS</div>
+              <p className={styles.placeholderText}>음성 대화</p>
+              <p className={styles.placeholderSub}>영상 없이 말로 상담</p>
+            </div>
+          )}
+          {showTextOnly && (
+            <div className={styles.modePlaceholder}>
+              <div className={styles.modeIcon}>TTT</div>
+              <p className={styles.placeholderText}>텍스트 대화</p>
+              <p className={styles.placeholderSub}>마이크와 소리 없이 채팅</p>
+            </div>
+          )}
+
+          {showAvatarVideo && videoReady && (
+            <div className={styles.nameplate}>
+              <div className={styles.nameplateInner}>
+                <span className={styles.nameplateName}>박대근 교수</span>
+                <span className={styles.nameplateSub}>차의과학대학교 신입생 담임교수</span>
+              </div>
+            </div>
+          )}
+
+          {status === 'speaking' && <div className={styles.speakGlow} />}
+        </div>
+
+        {mode === 'ftf' && (
+          <div className={`${styles.cameraPreview} ${cameraActive ? styles.cameraOn : ''}`}>
+            <video
+              ref={userVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className={styles.cameraVideo}
+              style={{ opacity: cameraActive ? 1 : 0 }}
+            />
+            {!cameraActive && (
+              <div className={styles.cameraPlaceholder}>
+                <span>CAM</span>
+                <small>사용자 캠</small>
+              </div>
+            )}
           </div>
         )}
+      </div>
 
-        {/* 하단 네임플레이트 */}
-        {videoReady && (
-          <div className={styles.nameplate}>
-            <div className={styles.nameplateInner}>
-              <span className={styles.nameplateName}>박대근 교수</span>
-              <span className={styles.nameplateSub}>차의과학대학교 경영학전공</span>
-            </div>
-          </div>
-        )}
-
-        {/* 발화 중 글로우 */}
-        {status === 'speaking' && <div className={styles.speakGlow} />}
+      <div className={styles.modeSwitch} role="group" aria-label="대화 모드 선택">
+        {MODE_OPTIONS.map(option => (
+          <button
+            key={option.value}
+            type="button"
+            className={`${styles.modeBtn} ${mode === option.value ? styles.modeBtnActive : ''}`}
+            onClick={() => onModeChange?.(option.value)}
+            disabled={status === 'connecting'}
+            aria-pressed={mode === option.value}
+            title={`${option.label} ${option.sub}`}
+          >
+            <span className={styles.modeLabel}>{option.label}</span>
+            <span className={styles.modeSub}>{option.sub}</span>
+          </button>
+        ))}
       </div>
 
       {/* 상태 배지 */}
@@ -66,7 +135,7 @@ export default function AvatarPanel({ status, videoRef, videoReady, onStart, onS
       {status === 'idle' && (
         <button className={styles.startBtn} onClick={onStart}>
           <span className={styles.startBtnIcon}>▶</span>
-          아바타 시작
+          {startLabel}
         </button>
       )}
       {status === 'connecting' && (
