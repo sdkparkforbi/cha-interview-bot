@@ -32,53 +32,79 @@ export default function AvatarPanel({
   const showVoiceOnly = mode === 'sts'
   const showTextOnly = mode === 'ttt'
   const startLabel = mode === 'ttt' ? '텍스트 시작' : mode === 'sts' ? '음성 시작' : '화상 시작'
+  const stageClass = [
+    styles.mediaStage,
+    mode === 'ftf' ? styles.sideBySide : '',
+    mode === 'sts' ? styles.voiceStage : '',
+    mode === 'ttt' ? styles.textStage : ''
+  ].filter(Boolean).join(' ')
 
   return (
     <div className={styles.panel}>
-      <div className={`${styles.mediaStage} ${mode === 'ftf' ? styles.sideBySide : ''}`}>
-        <div className={styles.videoWrap}>
+      <div className={stageClass}>
+        {!showAvatarVideo && (
           <video
             ref={videoRef}
             autoPlay
             playsInline
-            className={styles.video}
-            style={{ opacity: showAvatarVideo && videoReady ? 1 : 0 }}
+            className={styles.hiddenMedia}
           />
-          {showAvatarVideo && !videoReady && (
-            <div className={styles.placeholder}>
-              <div className={styles.avatarIcon}>
-                <span>교수</span>
-              </div>
-              <p className={styles.placeholderText}>박대근 교수</p>
-              <p className={styles.placeholderSub}>차의과학대학교 신입생 담임교수</p>
-            </div>
-          )}
-          {showVoiceOnly && (
-            <div className={styles.modePlaceholder}>
-              <div className={styles.modeIcon}>STS</div>
-              <p className={styles.placeholderText}>음성 대화</p>
-              <p className={styles.placeholderSub}>영상 없이 말로 상담</p>
-            </div>
-          )}
-          {showTextOnly && (
-            <div className={styles.modePlaceholder}>
-              <div className={styles.modeIcon}>TTT</div>
-              <p className={styles.placeholderText}>텍스트 대화</p>
-              <p className={styles.placeholderSub}>마이크와 소리 없이 채팅</p>
-            </div>
-          )}
+        )}
 
-          {showAvatarVideo && videoReady && (
-            <div className={styles.nameplate}>
-              <div className={styles.nameplateInner}>
-                <span className={styles.nameplateName}>박대근 교수</span>
-                <span className={styles.nameplateSub}>차의과학대학교 신입생 담임교수</span>
+        {showAvatarVideo && (
+          <div className={styles.videoWrap}>
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className={styles.video}
+              style={{ opacity: videoReady ? 1 : 0 }}
+            />
+            {!videoReady && (
+              <div className={styles.placeholder}>
+                <div className={styles.avatarIcon}>
+                  <span>교수</span>
+                </div>
+                <p className={styles.placeholderText}>박대근 교수</p>
+                <p className={styles.placeholderSub}>차의과학대학교 신입생 담임교수</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {status === 'speaking' && <div className={styles.speakGlow} />}
-        </div>
+            {videoReady && (
+              <div className={styles.nameplate}>
+                <div className={styles.nameplateInner}>
+                  <span className={styles.nameplateName}>박대근 교수</span>
+                  <span className={styles.nameplateSub}>차의과학대학교 신입생 담임교수</span>
+                </div>
+              </div>
+            )}
+
+            {status === 'speaking' && <div className={styles.speakGlow} />}
+          </div>
+        )}
+
+        {showVoiceOnly && (
+          <div className={`${styles.voicePanel} ${status === 'speaking' ? styles.voiceSpeaking : ''}`}>
+            <div className={styles.voiceOrb} aria-hidden="true">
+              <span className={styles.voiceRing} />
+              <span className={styles.voiceRing} />
+              <span className={styles.voiceCore} />
+            </div>
+            <div className={styles.waveBars} aria-hidden="true">
+              <span /><span /><span /><span /><span />
+            </div>
+            <p className={styles.placeholderText}>음성 대화</p>
+            <p className={styles.placeholderSub}>영상 없이 교수님 목소리로 상담</p>
+          </div>
+        )}
+
+        {showTextOnly && (
+          <div className={styles.textPanel}>
+            <div className={styles.textBadge}>TTT</div>
+            <p className={styles.placeholderText}>텍스트 대화</p>
+            <p className={styles.placeholderSub}>마이크와 아바타 없이 Gemma4 상담</p>
+          </div>
+        )}
 
         {mode === 'ftf' && (
           <div className={`${styles.cameraPreview} ${cameraActive ? styles.cameraOn : ''}`}>
