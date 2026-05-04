@@ -57,8 +57,8 @@
 
 .sideBySide .videoWrap,
 .sideBySide .cameraPreview {
-  width: min(340px, calc(50% - 14px));
-  max-width: 340px;
+  width: min(300px, calc(50% - 14px));
+  max-width: 300px;
   max-height: min(54vh, 500px);
   aspect-ratio: 3/4;
 }
@@ -299,7 +299,7 @@
 .cameraPreview {
   position: relative;
   width: 100%;
-  max-width: 340px;
+  max-width: 300px;
   aspect-ratio: 3/4;
   border-radius: 24px;
   overflow: hidden;
@@ -651,7 +651,7 @@
   }
 
   .videoWrap {
-    max-width: 138px;
+    max-width: 126px;
     max-height: none;
     aspect-ratio: 3/4;
     border-radius: 18px;
@@ -672,14 +672,14 @@
   }
 
   .cameraPreview {
-    max-width: 138px;
+    max-width: 126px;
     border-radius: 18px;
     font-size: 9px;
   }
 
   .sideBySide .videoWrap,
   .sideBySide .cameraPreview {
-    width: min(138px, calc(50% - 4px));
+    width: min(126px, calc(50% - 4px));
   }
 
   .placeholderText {
@@ -777,8 +777,8 @@
 
   .sideBySide .videoWrap,
   .sideBySide .cameraPreview {
-    width: min(260px, calc(50% - 10px));
-    max-width: 260px;
+    width: min(240px, calc(50% - 10px));
+    max-width: 240px;
   }
 
   .optionPanel {
@@ -793,10 +793,10 @@
     min-height: 292px;
   }
   .videoWrap {
-    max-width: 118px;
+    max-width: 110px;
   }
 
   .cameraPreview {
-    max-width: 118px;
+    max-width: 110px;
   }
 }
