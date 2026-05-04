@@ -41,7 +41,6 @@ export default function ChatPanel({
   const bottomRef               = useRef(null)
   const textareaRef             = useRef(null)
   const displayName             = user?.name || user?.nickname || '사용자'
-  const startLabel              = mode === 'ttt' ? '텍스트 시작' : mode === 'sts' ? '음성 시작' : '화상 시작'
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -125,7 +124,7 @@ export default function ChatPanel({
           onChange={handleInput}
           onKeyDown={handleKey}
           placeholder={
-            !connected ? `먼저 왼쪽의 [${startLabel}] 버튼을 눌러주세요`
+            !connected ? '먼저 왼쪽의 [상담 시작] 버튼을 눌러주세요'
             : mode === 'ttt' ? '텍스트로 질문을 입력하세요…'
             : isListening ? '듣고 있어요…'
             : '궁금한 점을 입력하세요…'

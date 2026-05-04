@@ -346,63 +346,97 @@
   color: var(--muted);
 }
 
-.modeSwitch {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(560px, 100%);
-  gap: 6px;
-  padding: 5px;
-  border-radius: 14px;
+.optionPanel {
+  width: min(420px, 100%);
+  padding: 10px;
+  border-radius: 16px;
   border: 1px solid var(--border);
   background: rgba(255,255,255,0.035);
   position: relative;
   z-index: 2;
 }
 
-.modeBtn {
+.optionSummary {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 9px;
+}
+
+.optionRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.optionToggle {
   min-width: 0;
-  min-height: 48px;
-  border: 1px solid transparent;
-  border-radius: 10px;
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
   background: transparent;
   color: var(--muted);
   font-family: inherit;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
-.modeBtn:hover:not(:disabled) {
+.optionToggle:hover:not(:disabled) {
   background: rgba(255,255,255,0.06);
   color: var(--text);
 }
 
-.modeBtn:disabled {
+.optionToggle:disabled {
   opacity: 0.55;
   cursor: default;
 }
 
-.modeBtnActive {
+.optionToggleOn {
   background: rgba(201,162,126,0.15);
   border-color: rgba(201,162,126,0.38);
   color: #f5dbc3;
 }
 
-.modeLabel {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1;
+.toggleLabel {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.modeSub {
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1.2;
+.toggleTrack {
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 2px;
+  flex-shrink: 0;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.toggleTrack span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.optionToggleOn .toggleTrack {
+  background: rgba(201,162,126,0.28);
+  border-color: rgba(201,162,126,0.36);
+}
+
+.optionToggleOn .toggleTrack span {
+  transform: translateX(14px);
+  background: var(--gold);
 }
 
 @keyframes pulseGlow {
@@ -667,24 +701,45 @@
     font-size: 12px;
   }
 
-  .modeSwitch {
+  .optionPanel {
     width: min(260px, 100%);
-    gap: 4px;
-    padding: 4px;
+    padding: 6px;
     border-radius: 12px;
   }
 
-  .modeBtn {
-    min-height: 34px;
-    border-radius: 9px;
+  .optionSummary {
+    font-size: 11px;
+    margin-bottom: 5px;
   }
 
-  .modeLabel {
+  .optionRow {
+    gap: 5px;
+  }
+
+  .optionToggle {
+    min-height: 32px;
+    border-radius: 9px;
+    padding: 6px 7px;
+    gap: 6px;
+  }
+
+  .toggleLabel {
     font-size: 11px;
   }
 
-  .modeSub {
-    font-size: 9px;
+  .toggleTrack {
+    width: 28px;
+    height: 17px;
+    padding: 2px;
+  }
+
+  .toggleTrack span {
+    width: 11px;
+    height: 11px;
+  }
+
+  .optionToggleOn .toggleTrack span {
+    transform: translateX(11px);
   }
 
   .statusLabel {
@@ -715,8 +770,8 @@
     max-width: 260px;
   }
 
-  .modeSwitch {
-    width: min(460px, 100%);
+  .optionPanel {
+    width: min(360px, 100%);
   }
 }
 

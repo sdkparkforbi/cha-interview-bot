@@ -7,12 +7,6 @@ const STATUS_MAP = {
   speaking:   { label: '말하는 중', dot: 'blue'  },
 }
 
-const MODE_OPTIONS = [
-  { value: 'ftf', label: 'FTF', sub: '화상' },
-  { value: 'sts', label: 'STS', sub: '음성' },
-  { value: 'ttt', label: 'TTT', sub: '텍스트' },
-]
-
 const VISUALIZER_BARS = Array.from({ length: 120 }, (_, index) => {
   const wave = Math.sin(index * 0.39) + Math.cos(index * 0.21) + Math.sin(index * 0.11)
   const height = 8 + Math.round(Math.abs(wave) * 13) + (index % 15 === 0 ? 12 : 0)
@@ -37,7 +31,13 @@ export default function AvatarPanel({
   const showAvatarVideo = mode === 'ftf'
   const showVoiceOnly = mode === 'sts'
   const showTextOnly = mode === 'ttt'
-  const startLabel = mode === 'ttt' ? '텍스트 시작' : mode === 'sts' ? '음성 시작' : '화상 시작'
+  const cameraEnabled = mode === 'ftf'
+  const micEnabled = mode !== 'ttt'
+  const modeSummary = cameraEnabled && micEnabled
+    ? '화상 상담 준비됨'
+    : micEnabled
+      ? '음성 상담 준비됨'
+      : '텍스트 상담 준비됨'
   const stageClass = [
     styles.mediaStage,
     mode === 'ftf' ? styles.sideBySide : '',
@@ -137,21 +137,30 @@ export default function AvatarPanel({
         )}
       </div>
 
-      <div className={styles.modeSwitch} role="group" aria-label="대화 모드 선택">
-        {MODE_OPTIONS.map(option => (
+      <div className={styles.optionPanel} aria-label="상담 방식 설정">
+        <div className={styles.optionSummary}>{modeSummary}</div>
+        <div className={styles.optionRow}>
           <button
-            key={option.value}
             type="button"
-            className={`${styles.modeBtn} ${mode === option.value ? styles.modeBtnActive : ''}`}
-            onClick={() => onModeChange?.(option.value)}
+            className={`${styles.optionToggle} ${cameraEnabled ? styles.optionToggleOn : ''}`}
+            onClick={() => onModeChange?.(cameraEnabled ? 'sts' : 'ftf')}
             disabled={status === 'connecting'}
-            aria-pressed={mode === option.value}
-            title={`${option.label} ${option.sub}`}
+            aria-pressed={cameraEnabled}
           >
-            <span className={styles.modeLabel}>{option.label}</span>
-            <span className={styles.modeSub}>{option.sub}</span>
+            <span className={styles.toggleLabel}>카메라</span>
+            <span className={styles.toggleTrack}><span /></span>
           </button>
-        ))}
+          <button
+            type="button"
+            className={`${styles.optionToggle} ${micEnabled ? styles.optionToggleOn : ''}`}
+            onClick={() => onModeChange?.(micEnabled ? 'ttt' : 'ftf')}
+            disabled={status === 'connecting'}
+            aria-pressed={micEnabled}
+          >
+            <span className={styles.toggleLabel}>마이크</span>
+            <span className={styles.toggleTrack}><span /></span>
+          </button>
+        </div>
       </div>
 
       {/* 상태 배지 */}
@@ -172,7 +181,7 @@ export default function AvatarPanel({
       {status === 'idle' && (
         <button className={styles.startBtn} onClick={onStart}>
           <span className={styles.startBtnIcon}>▶</span>
-          {startLabel}
+          상담 시작
         </button>
       )}
       {status === 'connecting' && (
