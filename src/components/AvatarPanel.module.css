@@ -7,29 +7,29 @@
   justify-content: center;
   background: var(--surface);
   overflow: hidden;
-  gap: 20px;
-  padding: 32px 24px;
+  gap: 24px;
+  padding: 32px clamp(24px, 4vw, 56px);
 }
 
 .mediaStage {
-  width: min(520px, 100%);
+  width: min(680px, 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: clamp(18px, 2vw, 28px);
   position: relative;
   z-index: 1;
 }
 
 .sideBySide {
-  width: min(560px, 100%);
+  width: min(840px, 100%);
 }
 
 /* 비디오 래퍼 */
 .videoWrap {
   position: relative;
   width: 100%;
-  max-width: 360px;
+  max-width: 420px;
   aspect-ratio: 9/16;
   border-radius: 24px;
   overflow: hidden;
@@ -40,8 +40,8 @@
 
 .sideBySide .videoWrap,
 .sideBySide .cameraPreview {
-  width: min(220px, calc(50% - 8px));
-  max-width: 220px;
+  width: min(380px, calc(50% - 14px));
+  max-width: 380px;
   aspect-ratio: 3/4;
 }
 
@@ -172,7 +172,7 @@
 .cameraPreview {
   position: relative;
   width: 100%;
-  max-width: 220px;
+  max-width: 380px;
   aspect-ratio: 3/4;
   border-radius: 24px;
   overflow: hidden;
@@ -222,7 +222,7 @@
 .modeSwitch {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(360px, 100%);
+  width: min(560px, 100%);
   gap: 6px;
   padding: 5px;
   border-radius: 14px;
@@ -525,6 +525,26 @@
 
   .statusLabel {
     font-size: 11px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1280px) {
+  .mediaStage {
+    width: min(620px, 100%);
+  }
+
+  .sideBySide {
+    width: min(640px, 100%);
+  }
+
+  .sideBySide .videoWrap,
+  .sideBySide .cameraPreview {
+    width: min(300px, calc(50% - 10px));
+    max-width: 300px;
+  }
+
+  .modeSwitch {
+    width: min(460px, 100%);
   }
 }
 
