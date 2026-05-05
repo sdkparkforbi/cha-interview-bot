@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cha-interview-bot 신뢰 설계 컴포넌트 18종</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --l1: #4f46e5;  /* indigo - 거시 정체성 */
+    --l2: #059669;  /* emerald - 콘텐츠 */
+    --l3: #d97706;  /* amber - 인터랙션 미시 */
+    --l4: #7c3aed;  /* violet - 메타 신호 */
+    --l1-bg: #eef2ff;
+    --l2-bg: #ecfdf5;
+    --l3-bg: #fffbeb;
+    --l4-bg: #f5f3ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', -apple-system, 'Malgun Gothic', sans-serif;
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 14px;
+  }
+  code, .mono {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.88em;
+    background: #f3f4f6;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #4b5563;
+  }
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+  header {
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  header .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  header .meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .summary {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    font-size: 13px;
+    color: #4b5563;
+  }
+  .summary strong { color: var(--text); }
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 12px 0 0;
+    font-size: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .matrix {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(580px, 1fr));
+    gap: 20px;
+  }
+  .layer {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .layer-header {
+    padding: 14px 18px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .layer-header h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .layer-header .count {
+    font-size: 12px;
+    opacity: 0.85;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .layer-desc {
+    padding: 10px 18px;
+    background: #f9fafb;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .components {
+    padding: 8px;
+  }
+  .component {
+    border: 1px solid transparent;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .component:hover { background: #f9fafb; border-color: var(--border); }
+  .component.open { background: #f9fafb; border-color: var(--border); }
+  .component-summary {
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .component-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .component-name {
+    font-weight: 500;
+    font-size: 13.5px;
+  }
+  .component-dim {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: white;
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .component-detail {
+    display: none;
+    padding: 4px 12px 14px 46px;
+    font-size: 12.5px;
+    color: #4b5563;
+  }
+  .component.open .component-detail { display: block; }
+  .component-detail dl { margin: 4px 0; display: grid; grid-template-columns: 86px 1fr; gap: 4px 12px; }
+  .component-detail dt { font-weight: 500; color: #6b7280; }
+  .component-detail dd { margin: 0; }
+  .component-detail dd a { color: var(--l1); text-decoration: none; border-bottom: 1px dotted; }
+  .component-detail dd a:hover { color: #312e81; }
+
+  .layer-1 .layer-header { background: var(--l1); }
+  .layer-2 .layer-header { background: var(--l2); }
+  .layer-3 .layer-header { background: var(--l3); }
+  .layer-4 .layer-header { background: var(--l4); }
+  .layer-1 .component-num { color: var(--l1); }
+  .layer-2 .component-num { color: var(--l2); }
+  .layer-3 .component-num { color: var(--l3); }
+  .layer-4 .component-num { color: var(--l4); }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .controls button {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .controls button:hover { background: #f3f4f6; }
+
+  .bibliography {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .bibliography h2 {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+  .bibliography .subnote {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .bibliography ol {
+    font-size: 12.5px;
+    color: #374151;
+    line-height: 1.7;
+    padding-left: 22px;
+  }
+  .bibliography li { margin-bottom: 8px; }
+  .bibliography a {
+    color: var(--l1);
+    text-decoration: none;
+    border-bottom: 1px dotted;
+    word-break: break-all;
+  }
+  .bibliography a:hover { color: #312e81; }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* Print styles */
+  @media print {
+    body { background: white; font-size: 11px; }
+    .container { padding: 0; max-width: 100%; }
+    .controls { display: none; }
+    .component-detail { display: block !important; padding: 4px 12px 10px 46px; }
+    .layer { break-inside: avoid; box-shadow: none; }
+    .matrix { grid-template-columns: 1fr 1fr; gap: 12px; }
+    a { color: black; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>cha-interview-bot 신뢰 설계 컴포넌트 18종</h1>
+  <div class="subtitle">박대근 교수 풀 디지털 트윈 기반 신입생 전공상담 AI 면담봇 — 신뢰 이론 매핑</div>
+  <div class="meta">v1.0 · 2026-05-05 · github.com/sungbongju/cha-interview-bot</div>
+</header>
+
+<section class="summary">
+  <strong>설계 개요</strong> — 본 봇은 신뢰 이론의 4개 층위(거시 정체성 · 콘텐츠 품질 · 인터랙션 미시 신호 · 메타 신호)에 걸쳐 18개 트러스트 컴포넌트를 의도적으로 배치하였다. 각 컴포넌트는 사용자 인지(awareness)와 신뢰 효과(effectiveness)의 두 차원에서 측정 가능하며, 본 연구는 어느 컴포넌트가 작동하고 어느 컴포넌트가 실패하는가를 검증한다. <strong>LLM은 온프레미스 Gemma4를 프롬프트 엔지니어링과 RAG로 유료 LLM 수준의 성과로 끌어올렸으며, 이는 본 연구의 system contribution이다.</strong>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--l1)"></span>L1 거시 정체성 (3)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--l2)"></span>L2 콘텐츠 품질 (4)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--l3)"></span>L3 인터랙션 미시 (5)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--l4)"></span>L4 메타 신호 (6)</span>
+  </div>
+</section>
+
+<div class="controls">
+  <button onclick="document.querySelectorAll('.component').forEach(c=>c.classList.add('open'))">전체 펼치기</button>
+  <button onclick="document.querySelectorAll('.component').forEach(c=>c.classList.remove('open'))">전체 접기</button>
+  <button onclick="window.print()">PDF로 저장 / 인쇄</button>
+</div>
+
+<main class="matrix">
+
+  <!-- Layer 1 -->
+  <section class="layer layer-1">
+    <div class="layer-header">
+      <h2>Layer 1. 거시 정체성 신호</h2>
+      <span class="count">3 / 18</span>
+    </div>
+    <div class="layer-desc">봇이 "누구인가"의 정체성 정합 신호. 본 연구의 가장 강한 차별점.</div>
+    <div class="components">
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">01</span>
+          <span class="component-name">박대근 교수 풀 디지털 트윈</span>
+          <span class="component-dim">Identity transfer</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>HeyGen Studio Avatar(직접 녹화) + 음성 클로닝 + 본인 Q&amp;A RAG + 본인 말투 시스템 프롬프트의 5-차원 정체성 정합</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> AVATAR_ID, VOICE_ID / <code>server/cha-rag.js</code></dd>
+            <dt>의도</dt><dd>실재 인물에 대한 신뢰가 디지털 트윈으로 이전(identity-based trust transfer)</dd>
+            <dt>레퍼런스</dt><dd>Doney &amp; Cannon (1997); Pataranutaporn et al. (2021)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">02</span>
+          <span class="component-name">기관 신원 표시</span>
+          <span class="component-dim">Institutional authority</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>UI 헤더·OG 메타·인사말에 "차의과학대학교 신입생 전공상담" 일관 노출</dd>
+            <dt>코드 위치</dt><dd><code>index.html</code> meta tags / <code>App.jsx</code> getGreetingText()</dd>
+            <dt>의도</dt><dd>출처 신뢰성(source credibility)을 통한 institutional authority 신호</dd>
+            <dt>레퍼런스</dt><dd>Hovland &amp; Weiss (1951); Bhattacherjee (2002)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">03</span>
+          <span class="component-name">AI 정체 명시</span>
+          <span class="component-dim">Honest disclosure</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>인사말과 아바타 이름판에 "AI 면담 어시스턴트" 명시</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> getGreetingText() / <code>AvatarPanel.jsx</code> nameplate</dd>
+            <dt>의도</dt><dd>봇임을 알고 상호작용하도록 하여 적정 신뢰(calibrated trust) 형성</dd>
+            <dt>레퍼런스</dt><dd>Liao &amp; Sundar (2022)</dd>
+          </dl>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Layer 2 -->
+  <section class="layer layer-2">
+    <div class="layer-header">
+      <h2>Layer 2. 콘텐츠 품질 신호</h2>
+      <span class="count">4 / 18</span>
+    </div>
+    <div class="layer-desc">LLM이 "무엇을 어떻게 말하는가"의 품질. 온프레미스 Gemma4 + RAG + 프롬프트 엔지니어링이 핵심 system contribution.</div>
+    <div class="components">
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">04</span>
+          <span class="component-name">RAG 기반 사실성</span>
+          <span class="component-dim">Ability — 환각 차단</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>bge-m3 임베딩, 본인 Q&amp;A 61개 청크에서 top-5 검색, 코사인 유사도 ≥ 0.25</dd>
+            <dt>코드 위치</dt><dd><code>server/cha-rag.js</code> retrieve()</dd>
+            <dt>의도</dt><dd>LLM 환각 차단으로 능력(Ability) 신뢰 신호 생성</dd>
+            <dt>레퍼런스</dt><dd>Ji et al. (2023)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">05</span>
+          <span class="component-name">한계의 명시적 인정</span>
+          <span class="component-dim">Calibrated trust</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>시스템 프롬프트에 "참고 자료에 없는 내용은 추측 금지, '교수님께 직접 여쭤보시는 걸 추천드려요'로 안내" 규칙</dd>
+            <dt>코드 위치</dt><dd><code>server/interview-chat.js</code> buildSystemPrompt()</dd>
+            <dt>의도</dt><dd>정직성(Integrity) 신호이자 trust calibration의 핵심 메커니즘</dd>
+            <dt>레퍼런스</dt><dd>Lee &amp; See (2004); Jacovi et al. (2021)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">06</span>
+          <span class="component-name">해요체와 따뜻한 말투</span>
+          <span class="component-dim">Benevolence</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>시스템 프롬프트의 "따뜻하고 친근하게, 해요체로 대화" 규칙 + 박대근 교수 본인 말투를 모사한 RAG 답변</dd>
+            <dt>코드 위치</dt><dd><code>server/interview-chat.js</code> + RAG chunks</dd>
+            <dt>의도</dt><dd>선의(Benevolence)·정서적 신뢰 신호 — ABI 차원 중 의인화 단서에 가장 민감</dd>
+            <dt>레퍼런스</dt><dd>Pelau et al. (2021); Lombard &amp; Xu (2021)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">07</span>
+          <span class="component-name">출력 형식 강제 (JSON · 이모지 제거)</span>
+          <span class="component-dim">일관성 · 전문성</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd><code>{"reply":..., "ttsReply":...}</code> JSON 강제 출력 + <code>stripEmoji()</code> 후처리</dd>
+            <dt>코드 위치</dt><dd><code>server/interview-chat.js</code> buildSystemPrompt() + stripEmoji()</dd>
+            <dt>의도</dt><dd>일관된 전문성 신호이자 sycophancy(아첨성 응답) 차단</dd>
+            <dt>레퍼런스</dt><dd>Ji et al. (2023)</dd>
+          </dl>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Layer 3 -->
+  <section class="layer layer-3">
+    <div class="layer-header">
+      <h2>Layer 3. 인터랙션 미시 신호</h2>
+      <span class="count">5 / 18</span>
+    </div>
+    <div class="layer-desc">평소엔 보이지 않다가 고장 시에만 가시화되는 미세 신호. A/B 실험·breakdown task 측정에 적합.</div>
+    <div class="components">
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">08</span>
+          <span class="component-name">응답 레이턴시 관리</span>
+          <span class="component-dim">Turn-taking 자연성</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>Mobile/PC별 silenceMs(2000/1600ms)와 echoGuardMs(1200/2400ms) 차등 튜닝</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> getSilenceMs(), getEchoGuardMs()</dd>
+            <dt>의도</dt><dd>STT→LLM→TTS 직렬 파이프라인에서 자연스러운 turn-taking 호흡 유지</dd>
+            <dt>레퍼런스</dt><dd>Skantze (2021); Cowan et al. (2017)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">09</span>
+          <span class="component-name">Echo guard 다층 방어</span>
+          <span class="component-dim">무한루프 차단</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd><code>isSpeakingRef</code>, <code>echoGuardUntilRef</code>, <code>lastSubmittedSpeechRef</code>, <code>mergeTranscript()</code> 등 5중 방어</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> 다수 useEffect / sendMessage()</dd>
+            <dt>의도</dt><dd>봇 발화가 사용자 질문으로 오인지되는 무한루프 차단 — 신뢰의 보이지 않는 인프라</dd>
+            <dt>레퍼런스</dt><dd>Skantze (2021)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">10</span>
+          <span class="component-name">ESC 발화 인터럽트</span>
+          <span class="component-dim">User agency</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>window+document 양쪽 capture phase에 등록되어 봇 말 도중 즉시 중단 가능</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> interruptAvatar() + handleGlobalKeydown</dd>
+            <dt>의도</dt><dd>사용자 통제권(user agency) 보장 — 적정 신뢰의 전제조건</dd>
+            <dt>레퍼런스</dt><dd>Buçinca et al. (2021); Shneiderman (2020)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">11</span>
+          <span class="component-name">아바타 입동기 · 제스처</span>
+          <span class="component-dim">Embodiment effect</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>HeyGen Studio Avatar의 박대근 교수 본인 영상 기반 자연스러운 입동기와 제스처 생성</dd>
+            <dt>코드 위치</dt><dd>HeyGen 외부 서비스 + <code>App.jsx</code> startAvatar()</dd>
+            <dt>의도</dt><dd>Embodiment effect를 통한 사회적 실재감 강화</dd>
+            <dt>레퍼런스</dt><dd>Bickmore &amp; Picard (2005); Mayer &amp; DaPra (2012)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">12</span>
+          <span class="component-name">모드 전환 부드러움 (FTF/STS/TTT)</span>
+          <span class="component-dim">Channel agency</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>동일 UI에서 좌하단 토글로 3 모달리티 즉시 전환 + 자원 자동 정리</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> changeConversationMode()</dd>
+            <dt>의도</dt><dd>사용자에게 채널 선택권 부여 — SIP / MAIN model 적용</dd>
+            <dt>레퍼런스</dt><dd>Walther (1996)</dd>
+          </dl>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Layer 4 -->
+  <section class="layer layer-4">
+    <div class="layer-header">
+      <h2>Layer 4. 신뢰 메타 신호</h2>
+      <span class="count">6 / 18</span>
+    </div>
+    <div class="layer-desc">봇 정책·관계·문화적 정합. 사용자가 의식적으로 인지하기 쉬워 설문 항목으로 가장 적합.</div>
+    <div class="components">
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">13</span>
+          <span class="component-name">개인정보 동의 UI</span>
+          <span class="component-dim">Transparency</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>필수(카카오 정보·개인정보)와 선택(마케팅) 동의를 분리하고 수집항목·이용목적·보유기간 노출</dd>
+            <dt>코드 위치</dt><dd><code>AuthModal.jsx</code> consent section</dd>
+            <dt>의도</dt><dd>투명성(transparency) 신호</dd>
+            <dt>레퍼런스</dt><dd>Acquisti et al. (2015); Liao &amp; Sundar (2022)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">14</span>
+          <span class="component-name">비로그인 둘러보기 옵션</span>
+          <span class="component-dim">Initial trust 진입로</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>"로그인 없이 둘러보기" 버튼으로 신뢰 형성 전 저-커밋 진입로 제공</dd>
+            <dt>코드 위치</dt><dd><code>AuthModal.jsx</code> guestBtn</dd>
+            <dt>의도</dt><dd>초기 신뢰 형성(initial trust)의 핵심 설계 원칙</dd>
+            <dt>레퍼런스</dt><dd>McKnight et al. (2002)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">15</span>
+          <span class="component-name">한글 서수 인사말</span>
+          <span class="component-dim">Personalization</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>방문 횟수를 자연 한국어 서수("첫·두·열한·스물한번째")로 발화</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> getKoreanVisitOrdinal(), getVisitGreeting()</dd>
+            <dt>의도</dt><dd>개인 인식(personalization)을 통한 사회적 단서</dd>
+            <dt>레퍼런스</dt><dd>Sundar &amp; Marathe (2010)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">16</span>
+          <span class="component-name">방문 횟수 추적</span>
+          <span class="component-dim">Para-social continuity</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>MySQL <code>users.visit_count</code> 매 로그인마다 +1, 인사말에 반영</dd>
+            <dt>코드 위치</dt><dd><code>server/api.php</code> handleKakaoLogin/handleEmailLogin / DB <code>users</code> 테이블</dd>
+            <dt>의도</dt><dd>일회성 거래가 아닌 지속적 관계로 프레이밍 — 비동기 para-social 메커니즘</dd>
+            <dt>레퍼런스</dt><dd>Horton &amp; Wohl (1956); Lombard &amp; Xu (2021)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">17</span>
+          <span class="component-name">TTS 발음 normalization</span>
+          <span class="component-dim">청각적 일관성</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>50+ 변환 규칙 — "AI"→"에이아이", "차의과학대학교"→"차 의과학 대학교", "GPT"→"지피티" 등</dd>
+            <dt>코드 위치</dt><dd><code>App.jsx</code> normalizeTtsText()</dd>
+            <dt>의도</dt><dd>영문 약어와 합성어를 한국어 음운으로 자연스럽게 발음 — 청각적 일관성과 인식 부하 감소</dd>
+            <dt>레퍼런스</dt><dd>(DOI 검증된 직접 레퍼런스 추후 보강)</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="component" onclick="this.classList.toggle('open')">
+        <div class="component-summary">
+          <span class="component-num">18</span>
+          <span class="component-name">카카오 인앱 → 외부 브라우저 자동 전환</span>
+          <span class="component-dim">기술적 honesty · 접근권</span>
+        </div>
+        <div class="component-detail">
+          <dl>
+            <dt>봇 기능</dt><dd>카카오톡 인앱 브라우저 감지 시 Android Chrome intent / iOS kakaotalk://web/openExternal로 강제 전환</dd>
+            <dt>코드 위치</dt><dd><code>index.html</code> 최상단 IIFE 스크립트</dd>
+            <dt>의도</dt><dd>마이크·WebRTC 권한 필요성을 솔직히 공개하고 사용자 접근권 보존</dd>
+            <dt>레퍼런스</dt><dd>Shneiderman (2020)</dd>
+          </dl>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+</main>
+
+<section class="bibliography">
+  <h2>참고문헌 (DOI 검증)</h2>
+  <p class="subnote">아래 문헌은 모두 공식 발행처 DOI가 확인된 것입니다. 항목 #17(TTS normalization)의 직접 레퍼런스는 추후 보강이 필요합니다.</p>
+  <ol>
+    <li>Acquisti, A., Brandimarte, L., &amp; Loewenstein, G. (2015). Privacy and human behavior in the age of information. <em>Science, 347</em>(6221), 509-514. <a href="https://doi.org/10.1126/science.aaa1465" target="_blank" rel="noopener">https://doi.org/10.1126/science.aaa1465</a></li>
+    <li>Bhattacherjee, A. (2002). Individual trust in online firms: Scale development and initial test. <em>Journal of Management Information Systems, 19</em>(1), 211-241. <a href="https://doi.org/10.1080/07421222.2002.11045715" target="_blank" rel="noopener">https://doi.org/10.1080/07421222.2002.11045715</a></li>
+    <li>Bickmore, T. W., &amp; Picard, R. W. (2005). Establishing and maintaining long-term human-computer relationships. <em>ACM Transactions on Computer-Human Interaction, 12</em>(2), 293-327. <a href="https://doi.org/10.1145/1067860.1067867" target="_blank" rel="noopener">https://doi.org/10.1145/1067860.1067867</a></li>
+    <li>Buçinca, Z., Malaya, M. B., &amp; Gajos, K. Z. (2021). To trust or to think: Cognitive forcing functions can reduce overreliance on AI in AI-assisted decision-making. <em>Proceedings of the ACM on Human-Computer Interaction, 5</em>(CSCW1), Article 188. <a href="https://doi.org/10.1145/3449287" target="_blank" rel="noopener">https://doi.org/10.1145/3449287</a></li>
+    <li>Cowan, B. R., Pantidi, N., Coyle, D., Morrissey, K., Clarke, P., Al-Shehri, S., Earley, D., &amp; Bandeira, N. (2017). "What can I help you with?": Infrequent users' experiences of intelligent personal assistants. <em>Proceedings of MobileHCI '17</em>. <a href="https://doi.org/10.1145/3098279.3098539" target="_blank" rel="noopener">https://doi.org/10.1145/3098279.3098539</a></li>
+    <li>Doney, P. M., &amp; Cannon, J. P. (1997). An examination of the nature of trust in buyer-seller relationships. <em>Journal of Marketing, 61</em>(2), 35-51. <a href="https://doi.org/10.1177/002224299706100203" target="_blank" rel="noopener">https://doi.org/10.1177/002224299706100203</a></li>
+    <li>Horton, D., &amp; Wohl, R. R. (1956). Mass communication and para-social interaction. <em>Psychiatry, 19</em>(3), 215-229. <a href="https://doi.org/10.1080/00332747.1956.11023049" target="_blank" rel="noopener">https://doi.org/10.1080/00332747.1956.11023049</a></li>
+    <li>Hovland, C. I., &amp; Weiss, W. (1951). The influence of source credibility on communication effectiveness. <em>Public Opinion Quarterly, 15</em>(4), 635-650. <a href="https://doi.org/10.1086/266350" target="_blank" rel="noopener">https://doi.org/10.1086/266350</a></li>
+    <li>Jacovi, A., Marasović, A., Miller, T., &amp; Goldberg, Y. (2021). Formalizing trust in artificial intelligence: Prerequisites, causes and goals of human trust in AI. <em>Proceedings of FAccT '21</em>, 624-635. <a href="https://doi.org/10.1145/3442188.3445923" target="_blank" rel="noopener">https://doi.org/10.1145/3442188.3445923</a></li>
+    <li>Ji, Z., Lee, N., Frieske, R., Yu, T., Su, D., Xu, Y., Ishii, E., Bang, Y. J., Madotto, A., &amp; Fung, P. (2023). Survey of hallucination in natural language generation. <em>ACM Computing Surveys, 55</em>(12), Article 248. <a href="https://doi.org/10.1145/3571730" target="_blank" rel="noopener">https://doi.org/10.1145/3571730</a></li>
+    <li>Lee, J. D., &amp; See, K. A. (2004). Trust in automation: Designing for appropriate reliance. <em>Human Factors, 46</em>(1), 50-80. <a href="https://doi.org/10.1518/hfes.46.1.50.30392" target="_blank" rel="noopener">https://doi.org/10.1518/hfes.46.1.50.30392</a></li>
+    <li>Liao, Q. V., &amp; Sundar, S. S. (2022). Designing for responsible trust in AI systems: A communication perspective. <em>Proceedings of FAccT '22</em>, 1257-1268. <a href="https://doi.org/10.1145/3531146.3533182" target="_blank" rel="noopener">https://doi.org/10.1145/3531146.3533182</a></li>
+    <li>Lombard, M., &amp; Xu, K. (2021). Social responses to media technologies in the 21st century: The Media Are Social Actors paradigm. <em>Human-Machine Communication, 2</em>, 29-55. <a href="https://doi.org/10.30658/hmc.2.2" target="_blank" rel="noopener">https://doi.org/10.30658/hmc.2.2</a></li>
+    <li>Mayer, R. E., &amp; DaPra, C. S. (2012). An embodiment effect in computer-based learning with animated pedagogical agents. <em>Journal of Experimental Psychology: Applied, 18</em>(3), 239-252. <a href="https://doi.org/10.1037/a0028616" target="_blank" rel="noopener">https://doi.org/10.1037/a0028616</a></li>
+    <li>McKnight, D. H., Choudhury, V., &amp; Kacmar, C. (2002). Developing and validating trust measures for e-commerce: An integrative typology. <em>Information Systems Research, 13</em>(3), 334-359. <a href="https://doi.org/10.1287/isre.13.3.334.81" target="_blank" rel="noopener">https://doi.org/10.1287/isre.13.3.334.81</a></li>
+    <li>Pataranutaporn, P., Danry, V., Leong, J., Punpongsanon, P., Novy, D., Maes, P., &amp; Sra, M. (2021). AI-generated characters for supporting personalized learning and well-being. <em>Nature Machine Intelligence, 3</em>, 1013-1022. <a href="https://doi.org/10.1038/s42256-021-00417-9" target="_blank" rel="noopener">https://doi.org/10.1038/s42256-021-00417-9</a></li>
+    <li>Pelau, C., Dabija, D.-C., &amp; Ene, I. (2021). What makes an AI device human-like? The role of interaction quality, empathy and perceived psychological anthropomorphic characteristics in the acceptance of artificial intelligence in the service industry. <em>Computers in Human Behavior, 122</em>, 106855. <a href="https://doi.org/10.1016/j.chb.2021.106855" target="_blank" rel="noopener">https://doi.org/10.1016/j.chb.2021.106855</a></li>
+    <li>Shneiderman, B. (2020). Human-centered artificial intelligence: Reliable, safe &amp; trustworthy. <em>International Journal of Human-Computer Interaction, 36</em>(6), 495-504. <a href="https://doi.org/10.1080/10447318.2020.1741118" target="_blank" rel="noopener">https://doi.org/10.1080/10447318.2020.1741118</a></li>
+    <li>Skantze, G. (2021). Turn-taking in conversational systems and human-robot interaction: A review. <em>Computer Speech &amp; Language, 67</em>, 101178. <a href="https://doi.org/10.1016/j.csl.2020.101178" target="_blank" rel="noopener">https://doi.org/10.1016/j.csl.2020.101178</a></li>
+    <li>Sundar, S. S., &amp; Marathe, S. S. (2010). Personalization versus customization: The importance of agency, privacy, and power usage. <em>Human Communication Research, 36</em>(3), 298-322. <a href="https://doi.org/10.1111/j.1468-2958.2010.01377.x" target="_blank" rel="noopener">https://doi.org/10.1111/j.1468-2958.2010.01377.x</a></li>
+    <li>Walther, J. B. (1996). Computer-mediated communication: Impersonal, interpersonal, and hyperpersonal interaction. <em>Communication Research, 23</em>(1), 3-43. <a href="https://doi.org/10.1177/009365096023001001" target="_blank" rel="noopener">https://doi.org/10.1177/009365096023001001</a></li>
+  </ol>
+</section>
+
+<footer>
+  cha-interview-bot trust components map · v1.0 · 2026-05-05<br>
+  본 문서는 신뢰 이론 기반 봇 컴포넌트 검증 연구의 사전 설계 문서입니다.
+</footer>
+
+</div>
+</body>
+</html>
